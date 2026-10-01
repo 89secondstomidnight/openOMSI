@@ -4238,7 +4238,20 @@ impl PlayerDuty {
             .collect();
         host.tt_stop_ids = trip.stops.iter().map(|s| s.object_id).collect();
         host.tt_busstop_index = self.next_stop as i32;
-        host.tt_terminus_index = trip.stops.len() as i32 - 1;
+        host.tt_terminus_index = host
+    .hof
+    .as_ref()
+    .and_then(|hof| {
+        ibis_target(
+            hof,
+            &trip.line,
+            &trip.terminus,
+            &trip.stops.iter().map(|s| s.name.as_str()).collect::<Vec<_>>(),
+            None,
+        )
+    })
+    .map(|target| target.terminus_index)
+    .unwrap_or(trip.stops.len() as i32 - 1);
         host.tt_delay = delay as f32;
         served
     }
